@@ -214,7 +214,7 @@ const TABS = [["keys", "Keys"], ["light", "Lighting"], ["macros", "Macros"], ["s
 function renderChrome() {
   const p = $("#pill");
   p.className = "pill" + (S.connected ? (S.demo ? " demo" : " on") : "");
-  p.lastElementChild.textContent = S.connected ? (S.demo ? "Demo keyboard (nothing is written to hardware)" : "VN66 connected · USB · firmware " + S.info.firmware) : "Not connected";
+  p.lastElementChild.textContent = S.connected ? (S.demo ? "Demo keyboard (nothing is written to hardware)" : "VN66 connected · USB · firmware " + S.info.firmware + (S.info.battery ? " · battery " + S.info.battery + "%" : "")) : "Not connected";
   $("#demoBtn").textContent = S.demo ? "Leave demo" : "Demo mode";
   const nav = $("#nav"); nav.replaceChildren();
   for (const [id, label] of TABS) {
@@ -451,7 +451,7 @@ function viewSettings() {
     el("h3", {}, "Keyboard"),
     el("div", {class: "card", style: "max-width:640px"},
       el("table", {}, el("tr", {}, el("th", {}, "Model"), el("td", {}, "Dukharo VN66 (device id " + S.info.deviceId + ")")), el("tr", {}, el("th", {}, "Firmware"), el("td", {}, String(S.info.firmware))),
-        el("tr", {}, el("th", {}, "Connection"), el("td", {}, S.info.link)), el("tr", {}, el("th", {}, "Profiles & backups"), el("td", {style: "user-select:text"}, S.dataDir))),
+        el("tr", {}, el("th", {}, "Connection"), el("td", {}, S.info.link)), el("tr", {}, el("th", {}, "Battery"), el("td", {}, S.info.battery ? S.info.battery + "% (updates about once a minute)" : "Not reported")), el("tr", {}, el("th", {}, "Profiles & backups"), el("td", {style: "user-select:text"}, S.dataDir))),
       el("div", {class: "row", style: "margin-top:14px"},
         el("button", {class: "btn", onclick: () => run(async () => { await api("/api/refresh", {}, "Reading keyboard…"); resetDrafts(); }, "Re-read everything from the keyboard")}, "Re-read from keyboard"),
         el("button", {class: "btn danger", onclick: async () => { if (await confirmDlg("Reset the keyboard to factory settings? Key map, lighting and macros on the keyboard will be erased. A backup of the current setup is saved first.", "Factory reset")) run(async () => { await api("/api/reset", {}, "Resetting keyboard…"); resetDrafts(); }, "Keyboard reset to factory settings"); }}, "Factory reset…")))];

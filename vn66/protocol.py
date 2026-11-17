@@ -13,6 +13,7 @@ DEVICE_IDS = (DEVICE_ID_VN66, DEVICE_ID_VN66_V2)
 
 CMD_GET_VERSION = 0x80
 CMD_GET_INFO = 0x8F
+CMD_GET_BATTERY = 0x83
 CMD_RESET = 0x02
 CMD_SET_RATE, CMD_GET_RATE = 0x04, 0x84
 CMD_GET_PROFILE = 0x85
@@ -321,6 +322,15 @@ class Keyboard:
     def firmware_version(self):
         return int.from_bytes(self._query(request(CMD_GET_VERSION))[1:3], "little")
 
+    def battery(self):
+        """Charge level in percent, or None if the keyboard gives no sensible answer."""
+        level = self._query(request(CMD_GET_BATTERY))[1]
+        return level if 0 < level <= 100 else None
+
+    def idle(self):
+        """True when no save is in progress, so a background read will not disturb it."""
+        return getattr(self, "quiet_until", 0) <= time.time()
+
     def read_profile(self):
         value = self._query(request(CMD_GET_PROFILE))[1]
         self.profile = value if value < 8 else 0
@@ -455,6 +465,8 @@ class SimDevice:
             out[1:5] = DEVICE_ID_VN66.to_bytes(4, "little")
         elif cmd == CMD_GET_VERSION:
             out[1:3] = (105).to_bytes(2, "little")
+        elif cmd == CMD_GET_BATTERY:
+            out[1], out[2] = 80, 1
         elif cmd == CMD_GET_PROFILE:
             out[1] = 0
         elif cmd == CMD_GET_RATE:

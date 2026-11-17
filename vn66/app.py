@@ -78,6 +78,14 @@ class Manager:
         self.last_ping = time.time()
         self.conflict = []
         self.conflict_checked = 0.0
+        self.battery_read = 0.0
+
+    def _read_battery(self):
+        self.battery_read = time.time()
+        try:
+            self.info["battery"] = self.kb.battery()
+        except (OSError, P.ProtocolError):
+            pass                                     # cosmetic; never drop the connection over it
 
     def check_conflict(self, force=False):
         if force or time.time() - self.conflict_checked > 6:
@@ -139,6 +147,8 @@ class Manager:
                     present = True
                 if not present:
                     self._drop("Keyboard disconnected.")
+                elif time.time() - self.battery_read > 60 and self.kb.idle():
+                    self._read_battery()
                 return
             try:
                 found, dongle = self._find_real()
@@ -171,6 +181,7 @@ class Manager:
         self.kb = kb
         self.info = {"firmware": kb.firmware_version(), "link": link, "deviceId": dev_id}
         kb.read_profile()
+        self._read_battery()
         self.problem = ""
         self.read_all()
         if not any("first-connect" in f for f in os.listdir(BACKUP_DIR)):

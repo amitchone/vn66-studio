@@ -6,7 +6,7 @@ class Proto(unittest.TestCase):
     def setUp(self):
         self.sim = P.SimDevice(); self.kb = P.Keyboard(self.sim, fast=True)
     def test_identity(self):
-        self.assertEqual(self.kb.device_id(), 224); self.assertEqual(self.kb.firmware_version(), 105)
+        self.assertEqual(self.kb.device_id(), 224); self.assertEqual(self.kb.firmware_version(), 105); self.assertEqual(self.kb.battery(), 80)
     def test_checksum_matches_stock_app(self):
         # stock app: byte7 = 255 - (sum(bytes0..6) & 255)
         self.assertEqual(P.request(0x8F)[7], 0x70); self.assertEqual(P.request(0x89, 0, 3)[7], 255 - 0x8C)
