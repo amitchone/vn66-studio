@@ -1,11 +1,18 @@
 # VN66 Studio
 
 A small replacement for the stock "Dukharo Driver" app for the Dukharo VN66 keyboard.
-Python standard library only; nothing to install.
+Windows needs only Python (standard library); macOS also needs the `hidapi` package.
 
 ## Run
 
-Windows, Python 3.10+. Double-click `VN66 Studio.cmd`, or run `python -m vn66.app`.
+**Windows** (Python 3.10+): double-click `VN66 Studio.cmd`, or run `python -m vn66.app`.
+
+**macOS** (experimental, not yet tested on a Mac): `pip3 install hidapi`, then double-click
+`VN66 Studio.command` or run `python3 -m vn66.app`. macOS will ask you to allow Terminal (or
+whatever starts it) under System Settings > Privacy & Security > Input Monitoring; start it
+again after granting that. The window opens in Chrome, Edge or Brave if installed, otherwise
+in your default browser.
+
 Add `--demo` to start with a simulated keyboard.
 
 The keyboard only accepts settings over the USB cable: plug it in and press Fn+T.
@@ -40,12 +47,14 @@ After any write that is saved to flash the keyboard must be left alone (about 1 
 ## Layout
 
 - `vn66/hid_win.py`   Windows HID access through ctypes
+- `vn66/hid_mac.py`   macOS HID access through hidapi
 - `vn66/protocol.py`  the keyboard's feature-report protocol, plus a simulator
 - `vn66/app.py`       local server (127.0.0.1 only) and device manager
 - `ui/index.html`     the interface
 - `tests/`            `python tests/test_protocol.py`
 
-Profiles and backups live in `%APPDATA%\VN66Studio`.
+Profiles and backups live in `%APPDATA%\VN66Studio` (Windows) or
+`~/Library/Application Support/VN66Studio` (macOS).
 
 ## Licence
 

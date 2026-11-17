@@ -18,7 +18,12 @@ from . import protocol as P
 PORT = 47866
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UI_FILE = os.path.join(ROOT, "ui", "index.html")
-DATA_DIR = os.path.join(os.environ.get("APPDATA") or os.path.expanduser("~"), "VN66Studio")
+WINDOWS = sys.platform == "win32"
+MAC = sys.platform == "darwin"
+if MAC:
+    DATA_DIR = os.path.expanduser("~/Library/Application Support/VN66Studio")
+else:
+    DATA_DIR = os.path.join(os.environ.get("APPDATA") or os.path.expanduser("~"), "VN66Studio")
 PROFILE_DIR = os.path.join(DATA_DIR, "profiles")
 BACKUP_DIR = os.path.join(DATA_DIR, "backups")
 META_FILE = os.path.join(DATA_DIR, "meta.json")
@@ -30,9 +35,22 @@ STOCK_IMAGES = ("iot_driver*", "Dukharo Driver.exe")
 NO_WINDOW = 0x08000000
 
 
+def hid_backend():
+    """The platform's HID module: enumerate_devices() and HidDevice."""
+    if WINDOWS:
+        from . import hid_win
+        return hid_win
+    if MAC:
+        from . import hid_mac
+        return hid_mac
+    raise OSError("VN66 Studio supports Windows and macOS only")
+
+
 def stock_driver_processes():
     """Names of running stock-driver processes. They poll the keyboard and corrupt our traffic."""
     found = []
+    if not WINDOWS:
+        return found
     for image in STOCK_IMAGES:
         try:
             out = subprocess.run(["tasklist", "/FI", "IMAGENAME eq " + image, "/FO", "CSV", "/NH"],
@@ -109,15 +127,15 @@ class Manager:
 
     # -- connection -------------------------------------------------------
     def _find_real(self):
-        from . import hid_win
-        seen_dongle = False
-        for d in hid_win.enumerate_devices():
+        """Candidate interfaces, best first, and whether only the 2.4G receiver is present."""
+        candidates, seen_dongle = [], False
+        for d in hid_backend().enumerate_devices():
             if d["usage_page"] == 1 and d["usage"] == 6 and d["feature_len"] == 65:
                 if (d["vid"], d["pid"]) in P.USB_IDS:
-                    return d, False
-                if d["vid"] == 0x25A7:
+                    candidates.append(d)
+                elif d["vid"] == 0x25A7:
                     seen_dongle = True
-        return None, seen_dongle
+        return candidates, seen_dongle
 
     def poll(self):
         """Called every couple of seconds: connect if possible, notice unplugging."""
@@ -132,9 +150,8 @@ class Manager:
                                 "will not connect until it is stopped." % ", ".join(self.conflict))
                 return
             if self.kb is not None:
-                from . import hid_win
                 try:
-                    present = any(d["path"] == self.kb.dev.path for d in hid_win.enumerate_devices())
+                    present = any(d["path"] == self.kb.dev.path for d in hid_backend().enumerate_devices())
                 except OSError:
                     present = True
                 if not present:
@@ -147,21 +164,21 @@ class Manager:
                 return
             if not found:
                 self.problem = ("Keyboard is on its 2.4G receiver. Settings can only be changed over the USB "
-                                "cable: plug it in and press Fn+T.") if dongle else \
-                               "No VN66 found. Plug in the USB cable and press Fn+T for wired mode."
+                                "cable: plug it in and press Fn+T.") if dongle else                                "No VN66 found. Plug in the USB cable and press Fn+T for wired mode."
                 return
-            from . import hid_win
-            try:
-                dev = hid_win.HidDevice(found["path"])
-            except OSError as e:
-                self.problem = "Found the keyboard but could not open it: %s" % e
-                return
-            try:
-                self._attach(dev, "USB")
-            except (OSError, P.ProtocolError) as e:
-                dev.close()
-                self.kb = None
-                self.problem = "Found the keyboard but could not read it: %s" % e
+            for candidate in found:                  # one on Windows; macOS may offer several interfaces
+                try:
+                    dev = hid_backend().HidDevice(candidate["path"])
+                except OSError as e:
+                    self.problem = "Found the keyboard but could not open it: %s" % e
+                    continue
+                try:
+                    self._attach(dev, "USB")
+                    return
+                except (OSError, P.ProtocolError) as e:
+                    dev.close()
+                    self.kb = None
+                    self.problem = "Found the keyboard but could not read it: %s" % e
 
     def _attach(self, dev, link):
         kb = P.Keyboard(dev, fast=isinstance(dev, P.SimDevice))
@@ -489,6 +506,11 @@ def poll_loop():
 
 def find_browser():
     candidates = []
+    if MAC:
+        candidates = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+                      "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+                      "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+                      "/Applications/Chromium.app/Contents/MacOS/Chromium"]
     for base in (os.environ.get("ProgramFiles(x86)"), os.environ.get("ProgramFiles"), os.environ.get("LOCALAPPDATA")):
         if base:
             candidates.append(os.path.join(base, "Microsoft", "Edge", "Application", "msedge.exe"))
