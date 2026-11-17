@@ -47,4 +47,8 @@ After any write that is saved to flash the keyboard must be left alone (about 1 
 
 Profiles and backups live in `%APPDATA%\VN66Studio`.
 
+## Licence
+
+0BSD: use it for anything, no conditions. See `LICENSE`.
+
 Unofficial; not affiliated with Dukharo.
