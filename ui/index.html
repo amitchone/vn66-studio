@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VN66 Studio</title>
+<style>
+:root{
+  --bg:#14161a; --panel:#1c1f25; --panel2:#242830; --line:#323743; --text:#e8eaee; --dim:#98a0ae;
+  --accent:#f0a23b; --accent-ink:#1a1206; --ok:#4cc38a; --bad:#ef6a6a; --key:#2b303a; --key-hi:#3a4150;
+  --u:58px; --radius:10px;
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#f3f1ec; --panel:#ffffff; --panel2:#f1eee8; --line:#d9d4c9; --text:#1d1f23; --dim:#666c78;
+    --accent:#c9741a; --accent-ink:#fff; --key:#f7f4ee; --key-hi:#ece7dc; }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;display:flex;flex-direction:column;user-select:none}
+button,select,input{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:16px;margin:0;font-weight:650;letter-spacing:.2px}
+header h1 span{color:var(--accent)}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);font-size:12.5px;color:var(--dim)}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.pill.on i{background:var(--ok)} .pill.demo i{background:var(--accent)}
+.spacer{flex:1}
+main{flex:1;display:flex;min-height:0}
+nav{width:168px;padding:14px 10px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:4px}
+nav button{all:unset;cursor:pointer;padding:9px 12px;border-radius:8px;color:var(--dim);font-weight:550}
+nav button:hover{background:var(--panel2);color:var(--text)}
+nav button.sel{background:var(--panel2);color:var(--text);box-shadow:inset 3px 0 0 var(--accent)}
+nav button:focus-visible,.btn:focus-visible,.chip:focus-visible,.key:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav .foot{margin-top:auto;font-size:11.5px;color:var(--dim);padding:0 12px}
+#view{flex:1;overflow:auto;padding:22px 26px 40px}
+h2{font-size:19px;margin:0 0 4px;font-weight:650} .sub{color:var(--dim);margin:0 0 18px;max-width:70ch}
+h3{font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);margin:18px 0 8px;font-weight:650}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
+@media (max-width:1100px){.grid2{grid-template-columns:1fr}}
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--panel2);padding:7px 14px;border-radius:8px;font-weight:550}
+.btn:hover{border-color:var(--dim)} .btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 50%,var(--line))}
+.btn.small{padding:3px 9px;font-size:12.5px}
+.chip{cursor:pointer;border:1px solid var(--line);background:var(--panel2);padding:5px 10px;border-radius:7px;font-size:13px;min-width:38px;text-align:center}
+.chip:hover{border-color:var(--accent)} .chip.sel{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+input[type=text],input[type=number],select{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:6px 9px;user-select:text}
+input[type=range]{accent-color:var(--accent);width:100%}
+label.f{display:block;color:var(--dim);font-size:12.5px;margin:12px 0 4px}
+.kbwrap{overflow-x:auto;padding:4px 0 10px}
+.kb{position:relative;width:calc(var(--u)*16);height:calc(var(--u)*5);margin:0 auto}
+.key{position:absolute;padding:0;margin:0;border:1px solid var(--line);background:var(--key);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12.5px;font-weight:600;line-height:1.1;overflow:hidden;box-shadow:0 2px 0 var(--line)}
+.key:hover{background:var(--key-hi)}
+.key.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.key.changed::after{content:"";position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.key small{position:absolute;left:5px;bottom:3px;font-size:9.5px;color:var(--dim);font-weight:500}
+.key.knob{border-radius:50%}
+.key.knobside{border-radius:8px;font-size:15px}
+.swatch{width:26px;height:26px;border-radius:6px;border:2px solid var(--line);cursor:pointer;padding:0}
+.swatch.sel{border-color:var(--text)}
+.modes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.mode{cursor:pointer;border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:10px 12px;text-align:left;font-weight:550}
+.mode.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.list{display:flex;flex-direction:column;gap:4px}
+.item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;border:1px solid transparent;cursor:pointer}
+.item:hover{background:var(--panel2)} .item.sel{background:var(--panel2);border-color:var(--line)}
+.item .n{width:26px;color:var(--dim);font-variant-numeric:tabular-nums} .item .t{flex:1} .item.empty .t{color:var(--dim)}
+.ev{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;background:var(--panel2);font-size:13px}
+.ev b{min-width:52px;font-weight:600} .ev .x{margin-left:auto}
+.ev.down b{color:var(--ok)} .ev.up b{color:var(--bad)} .ev.delay b{color:var(--dim)}
+.meter{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden} .meter i{display:block;height:100%;background:var(--accent)}
+table{border-collapse:collapse;width:100%} td,th{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left} th{color:var(--dim);font-weight:600;font-size:12.5px}
+kbd{background:var(--key);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 7px;font:600 12px "Segoe UI",sans-serif}
+.empty-state{max-width:560px;margin:8vh auto;text-align:center}
+.empty-state h2{font-size:22px;margin-bottom:10px}
+.steps{text-align:left;margin:18px auto;display:inline-block;color:var(--dim)} .steps li{margin:6px 0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);padding:10px 18px;border-radius:10px;box-shadow:0 8px 30px #0006;opacity:0;pointer-events:none;transition:opacity .2s;max-width:80vw}
+#toast.show{opacity:1} #toast.err{border-color:var(--bad)} #toast.good{border-color:var(--ok)}
+#busy{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;z-index:9}
+#busy.show{display:flex} #busy div{background:var(--panel);border:1px solid var(--line);padding:16px 26px;border-radius:12px;font-weight:600}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:22px;max-width:440px}
+dialog::backdrop{background:#0008} dialog p{margin:0 0 18px}
+.switch{display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 0}
+.switch input{width:18px;height:18px;accent-color:var(--accent)}
+.note{color:var(--dim);font-size:12.5px}
+.banner{background:color-mix(in srgb,var(--accent) 16%,var(--panel));border:1px solid var(--accent);border-radius:9px;padding:8px 14px;margin-bottom:16px}
+.sticky{position:sticky;top:-22px;z-index:2;background:var(--bg);padding:8px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>VN66 <span>Studio</span></h1>
+  <div id="pill" class="pill"><i></i><span>Looking for keyboard…</span></div>
+  <div class="spacer"></div>
+  <button class="btn small" id="demoBtn"></button>
+</header>
+<main>
+  <nav id="nav"></nav>
+  <section id="view"></section>
+</main>
+<div id="toast" role="status"></div>
+<div id="busy"><div id="busyText">Writing to keyboard…</div></div>
+<dialog id="dlg"><p id="dlgText"></p><div class="row" style="justify-content:flex-end"><button class="btn" id="dlgNo">Cancel</button><button class="btn primary" id="dlgYes">OK</button></div></dialog>
+
+<script>
+"use strict";
+const TOKEN = "__TOKEN__";
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v; else if (k === "style") e.style.cssText = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (v === true) e.setAttribute(k, ""); else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  for (const k of kids.flat(Infinity)) if (k != null && k !== false) e.append(k.nodeType ? k : document.createTextNode(k));
+  return e;
+};
+
+/* ---------- key tables ---------- */
+const HID = {40:"Enter",41:"Esc",42:"Backspace",43:"Tab",44:"Space",45:"-",46:"=",47:"[",48:"]",49:"\\",50:"# ~ (ISO)",51:";",52:"'",53:"`",54:",",55:".",56:"/",57:"Caps Lock",
+  70:"Print Screen",71:"Scroll Lock",72:"Pause",73:"Insert",74:"Home",75:"Page Up",76:"Delete",77:"End",78:"Page Down",79:"→",80:"←",81:"↓",82:"↑",
+  83:"Num Lock",84:"Num /",85:"Num *",86:"Num -",87:"Num +",88:"Num Enter",98:"Num 0",99:"Num .",100:"\ | (ISO)",101:"Menu",
+  224:"L Ctrl",225:"L Shift",226:"L Alt",227:"L Win",228:"R Ctrl",229:"R Shift",230:"R Alt",231:"R Win",
+  240:"Mouse Left",241:"Mouse Right",242:"Mouse Middle",243:"Mouse Forward",244:"Mouse Back"};
+for (let i = 0; i < 26; i++) HID[4 + i] = String.fromCharCode(65 + i);
+for (let i = 1; i <= 9; i++) { HID[29 + i] = String(i); HID[88 + i] = "Num " + i; }
+HID[39] = "0";
+for (let i = 1; i <= 12; i++) HID[57 + i] = "F" + i;
+for (let i = 13; i <= 24; i++) HID[91 + i] = "F" + i;
+const CODE = {Enter:40,Escape:41,Backspace:42,Tab:43,Space:44,Minus:45,Equal:46,BracketLeft:47,BracketRight:48,Backslash:49,Semicolon:51,Quote:52,Backquote:53,Comma:54,Period:55,Slash:56,CapsLock:57,
+  PrintScreen:70,ScrollLock:71,Pause:72,Insert:73,Home:74,PageUp:75,Delete:76,End:77,PageDown:78,ArrowRight:79,ArrowLeft:80,ArrowDown:81,ArrowUp:82,NumLock:83,NumpadDivide:84,NumpadMultiply:85,NumpadSubtract:86,NumpadAdd:87,NumpadEnter:88,Numpad0:98,NumpadDecimal:99,IntlBackslash:100,ContextMenu:101,
+  ControlLeft:224,ShiftLeft:225,AltLeft:226,MetaLeft:227,ControlRight:228,ShiftRight:229,AltRight:230,MetaRight:231,Digit0:39};
+for (let i = 0; i < 26; i++) CODE["Key" + String.fromCharCode(65 + i)] = 4 + i;
+for (let i = 1; i <= 9; i++) { CODE["Digit" + i] = 29 + i; CODE["Numpad" + i] = 88 + i; }
+for (let i = 1; i <= 12; i++) CODE["F" + i] = 57 + i;
+for (let i = 13; i <= 24; i++) CODE["F" + i] = 91 + i;
+const range = (a, b) => Array.from({length: b - a + 1}, (_, i) => a + i);
+const KEY_GROUPS = [["Letters", range(4, 29)], ["Numbers", range(30, 39)], ["Function", [...range(58, 69), ...range(104, 115)]],
+  ["Editing & navigation", [41, 43, 57, 42, 40, 44, 73, 76, 74, 77, 75, 78, 82, 81, 80, 79, 70, 71, 72, 101]],
+  ["Symbols", [53, 45, 46, 47, 48, 49, 50, 100, 51, 52, 54, 55, 56]], ["Modifiers", range(224, 231)], ["Numpad", range(83, 99)]];
+const MODS = [[0, "None"], [224, "Ctrl"], [225, "Shift"], [226, "Alt"], [227, "Win"]];
+const MEDIA = [["Play / Pause", [3,0,205,0]], ["Next track", [3,0,181,0]], ["Previous track", [3,0,182,0]], ["Stop", [3,0,183,0]],
+  ["Mute", [3,0,226,0]], ["Volume up", [3,0,233,0]], ["Volume down", [3,0,234,0]], ["Media player", [3,0,131,1]],
+  ["Screen brightness +", [3,0,111,0]], ["Screen brightness −", [3,0,112,0]], ["Calculator", [3,0,146,1]], ["Mail", [3,0,138,1]],
+  ["This PC", [3,0,148,1]], ["Browser home", [3,0,35,2]], ["Web search", [3,0,33,2]]];
+const MOUSE = [["Left click", [1,0,240,0]], ["Right click", [1,0,241,0]], ["Middle click", [1,0,242,0]], ["Forward", [1,0,243,0]],
+  ["Back", [1,0,244,0]], ["Scroll up", [1,0,245,1]], ["Scroll down", [1,0,245,255]]];
+const MACRO_TRIGGERS = [[0, "Play the set number of times"], [1, "Toggle: press to start, press to stop"], [2, "Repeat while held"]];
+const same = (a, b) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
+function entryLabel(e, long) {
+  const [a, b, c, d] = e;
+  if (!a && !b && !c && !d) return long ? "Disabled" : "∅";
+  if (a === 0) return (b ? (MODS.find(m => m[0] === b) || [0, HID[b] || "?"])[1] + " + " : "") + (HID[c] || "0x" + c.toString(16)) + (d ? " + " + (HID[d] || d) : "");
+  if (a === 10) return "Fn";
+  if (a === 9) return long ? "Macro " + (c + 1) + " (" + ((S.config.macros[c] || {}).name || "empty") + ")" : "M" + (c + 1);
+  const hit = [...MEDIA, ...MOUSE].find(m => same(m[1], e));
+  return hit ? hit[0] : "Custom " + e.map(x => x.toString(16).padStart(2, "0")).join(" ");
+}
+
+/* ---------- physical layout (x, y, width in key units; i = firmware matrix index) ---------- */
+const KEYS = [];
+function rowOf(y, x, items) { for (const [l, i, w = 1] of items) { KEYS.push({l, i, x, y, w}); x += w; } }
+rowOf(0, 0, [["Esc",1],["1",7],["2",13],["3",19],["4",25],["5",31],["6",37],["7",43],["8",49],["9",55],["0",61],["-",67],["=",73],["Backspace",79,2]]);
+rowOf(1, 0, [["Tab",2,1.5],["Q",8],["W",14],["E",20],["R",26],["T",32],["Y",38],["U",44],["I",50],["O",56],["P",62],["[",68],["]",74],["\\",80,1.5],["PgUp",86]]);
+rowOf(2, 0, [["Caps",3,1.75],["A",9],["S",15],["D",21],["F",27],["G",33],["H",39],["J",45],["K",51],["L",57],[";",63],["'",69],["Enter",81,2.25],["PgDn",87]]);
+rowOf(3, 0, [["Shift",4,2.25],["Z",16],["X",22],["C",28],["V",34],["B",40],["N",46],["M",52],[",",58],[".",64],["/",70],["Shift",76,1.75],["↑",82]]);
+rowOf(4, 0, [["Ctrl",5,1.25],["Win",17,1.25],["Alt",23,1.25],["Space",41,6.25],["Alt",53],["Fn",59],["Ctrl",71],["←",77],["↓",83],["→",89]]);
+const knobKeys = () => [{l: "Knob turn left", s: "↺", i: S.knob.left}, {l: "Knob press", s: "●", i: S.knob.press}, {l: "Knob turn right", s: "↻", i: S.knob.right}];
+const keyName = i => (KEYS.find(k => k.i === i) || knobKeys().find(k => k.i === i) || {l: "?"}).l;
+
+/* ---------- state ---------- */
+let S = null, tab = "keys", busy = false;
+let layer = "base", draftFn = null, draftKeys = null, selKey = null, assignTab = "key", assignMod = 0, capture = false;
+let lightDraft = null, lightTimer = null, paint = null, paintColour = "#ff3b30", painting = false;
+let macroSel = 0, macroDraft = null, recording = false, recLast = 0, recHeld = new Set();
+let profileList = {profiles: [], backups: []};
+const clone = o => JSON.parse(JSON.stringify(o));
+
+async function api(path, body = {}, busyText) {
+  if (busyText) { busy = true; $("#busyText").textContent = busyText; $("#busy").classList.add("show"); }
+  try {
+    const r = await fetch(path, {method: "POST", headers: {"Content-Type": "application/json", "X-Token": TOKEN}, body: JSON.stringify(body)});
+    const j = await r.json();
+    if (!r.ok) { if (j.state) adopt(j.state); throw new Error(j.error || "Request failed"); }
+    if ("connected" in j) adopt(j);
+    return j;
+  } finally { if (busyText) { busy = false; $("#busy").classList.remove("show"); } }
+}
+function toast(msg, kind = "") { const t = $("#toast"); t.textContent = msg; t.className = "show " + kind; clearTimeout(toast.t); toast.t = setTimeout(() => t.className = "", kind === "err" ? 6000 : 2400); }
+async function run(fn, okMsg) { try { await fn(); if (okMsg) toast(okMsg, "good"); } catch (e) { toast(e.message, "err"); } render(); }
+function confirmDlg(text, yes = "OK") {
+  return new Promise(res => { const d = $("#dlg"); $("#dlgText").textContent = text; $("#dlgYes").textContent = yes;
+    $("#dlgYes").onclick = () => { d.close(); res(true); }; $("#dlgNo").onclick = () => { d.close(); res(false); }; d.oncancel = () => res(false); d.showModal(); });
+}
+function adopt(state) {
+  const was = S && S.connected, wasDemo = S && S.demo;
+  S = state;
+  if (S.connected && (!was || wasDemo !== S.demo || !draftKeys)) resetDrafts();
+  if (!S.connected) { draftKeys = null; draftFn = null; paint = null; lightDraft = null; macroDraft = null; recording = false; }
+}
+function resetDrafts() {
+  draftKeys = clone(S.config.keymap); draftFn = clone(S.config.fnmap); selKey = null; lightDraft = clone(S.config.light); paint = clone(S.config.perkey);
+  macroDraft = null; macroSel = 0;
+}
+const keysDirty = () => draftKeys && (draftKeys.some((e, i) => !same(e, S.config.keymap[i])) || draftFn.some((e, i) => !same(e, S.config.fnmap[i])));
+const paintDirty = () => paint && Object.keys(paint).some(k => paint[k] !== S.config.perkey[k]);
+
+/* ---------- chrome ---------- */
+const TABS = [["keys", "Keys"], ["light", "Lighting"], ["macros", "Macros"], ["settings", "Settings"], ["profiles", "Profiles"], ["help", "Shortcuts"]];
+function renderChrome() {
+  const p = $("#pill");
+  p.className = "pill" + (S.connected ? (S.demo ? " demo" : " on") : "");
+  p.lastElementChild.textContent = S.connected ? (S.demo ? "Demo keyboard (nothing is written to hardware)" : "VN66 connected · USB · firmware " + S.info.firmware) : "Not connected";
+  $("#demoBtn").textContent = S.demo ? "Leave demo" : "Demo mode";
+  const nav = $("#nav"); nav.replaceChildren();
+  for (const [id, label] of TABS) {
+    const dirty = (id === "keys" && keysDirty()) || (id === "light" && paintDirty());
+    nav.append(el("button", {class: tab === id ? "sel" : "", onclick: () => { tab = id; stopRecording(); render(); if (id === "profiles" && S.connected) loadProfiles().then(render, () => {}); }}, label + (dirty ? " •" : "")));
+  }
+  nav.append(el("div", {class: "foot"}, "Unofficial tool. Not affiliated with Dukharo."));
+}
+function render() {
+  if (!S) return;
+  renderChrome();
+  const v = $("#view"); const scroll = v.scrollTop;
+  v.replaceChildren(...(tab === "help" ? viewHelp() : !S.connected ? viewDisconnected() : {keys: viewKeys, light: viewLight, macros: viewMacros, settings: viewSettings, profiles: viewProfiles}[tab]()).flat(Infinity).filter(Boolean));
+  v.scrollTop = scroll;
+}
+function viewDisconnected() {
+  return [el("div", {class: "empty-state"},
+    el("h2", {}, "Connect your VN66 by cable"),
+    el("p", {class: "sub", style: "margin:0 auto"}, S.problem || "Looking for the keyboard…"),
+    el("ol", {class: "steps"}, el("li", {}, "Plug the USB-C cable into the keyboard and this PC."), el("li", {}, "Press ", el("kbd", {}, "Fn"), " + ", el("kbd", {}, "T"), " to switch the keyboard to wired mode."),
+      el("li", {}, "Close the stock Dukharo Driver app if it is running.")),
+    el("p", {class: "note"}, "The keyboard only accepts settings over USB. Once saved they stay in the keyboard and keep working over 2.4G and Bluetooth."),
+    S.conflict.length ? el("p", {}, el("button", {class: "btn primary", onclick: async () => { if (await confirmDlg("Stop " + S.conflict.join(", ") + "? Windows will ask for permission, because the stock driver runs as administrator. It will start again next time you open the stock Dukharo app.", "Stop it")) run(() => api("/api/stopStock", {}, "Stopping the stock driver…")); }}, "Stop the stock driver")) : null,
+    el("button", {class: "btn", onclick: () => run(() => api("/api/demo", {on: true}))}, "Explore with a demo keyboard"))];
+}
+
+/* ---------- keyboard drawing ---------- */
+function drawKeyboard(opts) {
+  const kb = el("div", {class: "kb"});
+  const u = n => `calc(var(--u)*${n})`;
+  for (const k of KEYS) {
+    const b = el("button", {class: "key", style: `left:${u(k.x)};top:${u(k.y)};width:calc(var(--u)*${k.w} - 6px);height:calc(var(--u) - 6px)`});
+    opts.paint(b, k, false); kb.append(b);
+  }
+  knobKeys().forEach((k, n) => {
+    const b = el("button", {class: "key " + (n === 1 ? "knob" : "knobside"), title: k.l,
+      style: n === 1 ? `left:calc(var(--u)*15 + 9px);top:0;width:calc(var(--u) - 24px);height:calc(var(--u) - 24px)` :
+        `left:calc(var(--u)*${n ? 15.5 : 15} - ${n ? 1 : 0}px);top:calc(var(--u) - 22px);width:calc(var(--u)*.5 - 5px);height:16px;box-shadow:none`});
+    opts.paint(b, k, true); kb.append(b);
+  });
+  return el("div", {class: "kbwrap"}, kb);
+}
+
+/* ---------- Keys ---------- */
+const FWFN = [["BT 1", "Bluetooth 1", [14,0,1,0]], ["BT 2", "Bluetooth 2", [14,0,2,0]], ["BT 3", "Bluetooth 3", [14,0,3,0]], ["2.4G", "2.4G receiver", [14,0,0,0]], ["Wired", "Wired (USB) mode", [14,0,4,0]],
+  ["Effect", "Next lighting effect", [13,1,0,0]], ["Colour", "Next lighting colour", [13,5,1,0]], ["Light", "Lighting on / off", [10,12,0,0]], ["Bright+", "Brighter", [13,2,1,0]], ["Bright−", "Dimmer", [13,2,2,0]],
+  ["Speed+", "Faster effect", [13,3,2,0]], ["Speed−", "Slower effect", [13,3,1,0]], ["Win lock", "Lock the Windows key", [10,3,0,0]],
+  ["Built-in", "Built-in function (factory Fn + Y)", [10,8,0,0]], ["Built-in", "Built-in function (factory Fn + M)", [10,5,3,0]]];
+const onFn = () => layer === "fn";
+const draft = () => onFn() ? draftFn : draftKeys;
+const stored = () => onFn() ? S.config.fnmap : S.config.keymap;
+const factory = () => onFn() ? S.defaultFnmap : S.defaultKeymap;
+const fnIndex = () => draftKeys.findIndex(e => e[0] === 10 && e[1] === 1);
+function keyLabel(e, long) {
+  const fw = FWFN.find(f => same(f[2], e));
+  if (fw) return long ? fw[1] : fw[0];
+  if (onFn() && !e.some(Boolean)) return long ? "Nothing" : "";
+  return entryLabel(e, long);
+}
+function viewKeys() {
+  const D = draft(), changed = D.filter((e, i) => !same(e, stored()[i])).length;
+  const other = (onFn() ? draftKeys : draftFn).filter((e, i) => !same(e, (onFn() ? S.config.keymap : S.config.fnmap)[i])).length;
+  const board = drawKeyboard({paint(b, k, knob) {
+    const e = D[k.i], def = factory()[k.i], lab = keyLabel(e);
+    b.append(knob ? (same(e, def) && !onFn() ? k.s : lab ? "•" : "") : lab.length > 9 && k.w < 1.5 ? lab.slice(0, 8) + "…" : lab);
+    b.title = (onFn() ? "Fn + " : "") + k.l + ": " + keyLabel(e, true);
+    if (!same(e, def)) b.classList.add("changed");
+    if (!knob && (onFn() || !same(e, def))) b.append(el("small", {}, k.l));
+    if (onFn() && k.i === fnIndex()) { b.disabled = true; b.style.opacity = .35; b.replaceChildren("Fn"); }
+    if (selKey === k.i) b.classList.add("sel");
+    b.onclick = () => { selKey = k.i; capture = false; const cur = D[k.i]; assignTab = FWFN.some(f => same(f[2], cur)) ? "fw" : cur[0] === 9 ? "macro" : cur[0] === 3 ? "media" : cur[0] === 1 ? "mouse" : "key"; assignMod = cur[0] === 0 ? cur[1] : 0; render(); };
+  }});
+  const write = () => run(() => onFn() ? api("/api/fnmap", {fnmap: draftFn}, "Writing Fn layer…") : api("/api/keymap", {keymap: draftKeys}, "Writing key map…"), (onFn() ? "Fn layer" : "Key map") + " saved to the keyboard");
+  return [
+    el("h2", {}, "Keys"), el("p", {class: "sub"}, onFn() ? "What each key does while Fn is held. Click a key, then choose its Fn action. Empty keys do nothing with Fn." : "Click a key or the knob, then choose what it should do. Changes are stored in the keyboard when you press Write."),
+    el("div", {class: "chips", style: "margin-bottom:12px"}, [["base", "Base layer"], ["fn", "Fn layer (while Fn is held)"]].map(([id, n]) => el("button", {class: "chip" + (layer === id ? " sel" : ""), onclick: () => { layer = id; selKey = null; capture = false; render(); }}, n))),
+    fnIndex() < 0 && el("div", {class: "banner"}, "No key is assigned to Fn. The Fn layer will be unreachable until you assign one."),
+    el("div", {class: "row sticky"},
+      el("button", {class: "btn primary", disabled: !changed, onclick: write}, changed ? `Write ${changed} change${changed > 1 ? "s" : ""} to keyboard` : "No changes"),
+      el("button", {class: "btn", disabled: !changed, onclick: () => { if (onFn()) draftFn = clone(S.config.fnmap); else draftKeys = clone(S.config.keymap); render(); }}, "Discard"),
+      other ? el("span", {class: "note"}, `${other} unwritten change${other > 1 ? "s" : ""} on the ${onFn() ? "base" : "Fn"} layer`) : null,
+      el("div", {class: "spacer"}),
+      el("button", {class: "btn", onclick: () => { if (onFn()) draftFn = clone(S.defaultFnmap); else draftKeys = clone(S.defaultKeymap); render(); }}, onFn() ? "Reset Fn layer to default" : "Reset all keys to default")),
+    board, selKey == null ? el("div", {class: "card note"}, "Select a key above to change it.") : assignPanel()];
+}
+function setKey(e) { draft()[selKey] = e.slice(); capture = false; render(); }
+function assignPanel() {
+  const cur = draft()[selKey], def = factory()[selKey];
+  const tabs = [["key", "Keyboard key"], ["media", "Media & system"], ["mouse", "Mouse"], ["macro", "Macro"], ...(onFn() ? [["fw", "Keyboard functions"]] : [])];
+  let body;
+  if (assignTab === "key") {
+    body = [el("div", {class: "row"},
+        el("span", {class: "note"}, "Hold with"), el("div", {class: "chips"}, MODS.map(([v, n]) => el("button", {class: "chip" + (assignMod === v ? " sel" : ""), onclick: () => { assignMod = v; if (cur[0] === 0 && cur[2]) setKey([0, v, cur[2], 0]); else render(); }}, n))),
+        el("div", {class: "spacer"}),
+        el("button", {class: "btn small" + (capture ? " primary" : ""), onclick: () => { capture = !capture; render(); }}, capture ? "Press any key now…" : "Capture from keyboard")),
+      ...KEY_GROUPS.map(([name, codes]) => [el("h3", {}, name), el("div", {class: "chips"}, codes.map(c => el("button", {class: "chip" + (cur[0] === 0 && cur[2] === c && cur[1] === assignMod ? " sel" : ""), onclick: () => setKey([0, c >= 224 ? 0 : assignMod, c, 0])}, HID[c])))])];
+  } else if (assignTab === "media" || assignTab === "mouse") {
+    body = [el("div", {class: "chips"}, (assignTab === "media" ? MEDIA : MOUSE).map(([n, e]) => el("button", {class: "chip" + (same(cur, e) ? " sel" : ""), onclick: () => setKey(e)}, n)))];
+  } else if (assignTab === "fw") {
+    body = [el("div", {class: "chips"}, FWFN.map(([, n, e]) => el("button", {class: "chip" + (same(cur, e) ? " sel" : ""), onclick: () => setKey(e)}, n))),
+      el("p", {class: "note"}, "These are the keyboard's own functions, taken from its factory Fn layer.")];
+  } else {
+    const slots = Object.keys(S.config.macros).map(Number).sort((a, b) => a - b);
+    const trig = cur[0] === 9 ? cur[1] : 0;
+    body = slots.length ? [
+      el("div", {class: "chips"}, slots.map(s => el("button", {class: "chip" + (cur[0] === 9 && cur[2] === s ? " sel" : ""), onclick: () => setKey([9, trig, s, 0])}, `${s + 1}. ${S.config.macros[s].name}`))),
+      el("label", {class: "f"}, "When the key is pressed"),
+      el("select", {disabled: cur[0] !== 9, onchange: ev => setKey([9, +ev.target.value, cur[2], 0])}, MACRO_TRIGGERS.map(([v, n]) => el("option", {value: v, selected: v === trig}, n)))]
+      : [el("p", {class: "note"}, "No macros stored yet. Create one on the Macros page first.")];
+  }
+  return el("div", {class: "card"},
+    el("div", {class: "row"}, el("strong", {}, (onFn() ? "Fn + " : "") + keyName(selKey)), el("span", {class: "note"}, "currently: " + keyLabel(cur, true)), el("div", {class: "spacer"}),
+      !onFn() && el("button", {class: "btn small", onclick: () => setKey([10, 1, 0, 0])}, "Make Fn"),
+      el("button", {class: "btn small", onclick: () => setKey([0, 0, 0, 0])}, onFn() ? "Nothing" : "Disable"),
+      el("button", {class: "btn small", disabled: same(cur, def), onclick: () => setKey(def)}, "Default (" + keyLabel(def, true) + ")")),
+    el("div", {class: "chips", style: "margin:14px 0 12px"}, tabs.map(([id, n]) => el("button", {class: "chip" + (assignTab === id ? " sel" : ""), onclick: () => { assignTab = id; capture = false; render(); }}, n))),
+    body);
+}
+
+/* ---------- Lighting ---------- */
+const PALETTE = ["#ff3b30", "#ff9500", "#ffd60a", "#34c759", "#00c7be", "#0a84ff", "#5e5ce6", "#bf5af2", "#ff2d92", "#ffffff", "#000000"];
+function pushLight() {
+  clearTimeout(lightTimer);
+  const seq = ++pushLight.seq;
+  lightTimer = setTimeout(() => run(async () => { await api("/api/light", {light: lightDraft}); if (seq === pushLight.seq) lightDraft = clone(S.config.light); }), 350);
+}
+pushLight.seq = 0;
+function viewLight() {
+  const L = lightDraft, mode = S.modes.find(m => m.id === L.mode) || {label: "Unknown effect (set from the keyboard)", speed: true, colour: true};
+  const set = (k, v) => { L[k] = v; pushLight(); render(); };
+  const slider = (label, key) => [el("label", {class: "f"}, `${label}: ${L[key]} / 4`), el("input", {type: "range", min: 0, max: 4, step: 1, value: L[key], oninput: ev => { L[key] = +ev.target.value; pushLight(); }, onchange: render})];
+  const side = el("div", {class: "card"},
+    el("strong", {}, mode.label),
+    L.mode !== 0 && slider("Brightness", "brightness"),
+    mode.speed && slider("Speed", "speed"),
+    mode.options && [el("label", {class: "f"}, "Direction"), el("div", {class: "chips"}, Object.entries(mode.options).map(([n, v]) => el("button", {class: "chip" + (L.option === v ? " sel" : ""), onclick: () => set("option", v)}, n)))],
+    mode.colour && [el("label", {class: "f"}, "Colour"),
+      el("div", {class: "chips"}, el("button", {class: "chip" + (L.rainbow ? " sel" : ""), onclick: () => set("rainbow", true)}, "Rainbow"), el("button", {class: "chip" + (!L.rainbow ? " sel" : ""), onclick: () => set("rainbow", false)}, "Single colour")),
+      !L.rainbow && el("div", {class: "row", style: "margin-top:10px"}, PALETTE.slice(0, 10).map(c => el("button", {class: "swatch" + (L.color === c ? " sel" : ""), style: "background:" + c, title: c, onclick: () => set("color", c)})),
+        el("input", {type: "color", value: L.color, title: "Any colour", onchange: ev => set("color", ev.target.value)}))],
+    el("p", {class: "note", style: "margin:14px 0 0"}, "Lighting changes are sent to the keyboard as you make them."));
+  const main = [el("div", {class: "modes"}, S.modes.map(m => el("button", {class: "mode" + (L.mode === m.id ? " sel" : ""), onclick: () => set("mode", m.id)}, m.label)))];
+  if (L.mode === 13) main.push(el("h3", {}, "Per-key colours"),
+    el("div", {class: "row"}, PALETTE.map(c => el("button", {class: "swatch" + (paintColour === c ? " sel" : ""), style: "background:" + c, title: c === "#000000" ? "Off" : c, onclick: () => { paintColour = c; render(); }})),
+      el("input", {type: "color", value: paintColour, onchange: ev => { paintColour = ev.target.value; render(); }}),
+      el("button", {class: "btn small", onclick: () => { KEYS.forEach(k => paint[k.i] = paintColour); render(); }}, "Fill all"),
+      el("div", {class: "spacer"}),
+      el("button", {class: "btn small", disabled: !paintDirty(), onclick: () => { paint = clone(S.config.perkey); render(); }}, "Discard"),
+      el("button", {class: "btn primary small", disabled: !paintDirty(), onclick: () => run(async () => { await api("/api/perkey", {colours: paint}, "Writing colours…"); await api("/api/light", {light: lightDraft}); paint = clone(S.config.perkey); }, "Colours saved to the keyboard")}, "Write colours to keyboard")),
+    drawKeyboard({paint(b, k, knob) {
+      if (knob) { b.disabled = true; b.style.opacity = .3; b.append(k.s); return; }
+      const c = paint[k.i] || "#000000"; b.append(k.l);
+      b.style.background = c; const [r, g, bl] = [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)); b.style.color = r * .3 + g * .6 + bl * .1 > 140 ? "#111" : "#eee";
+      const dab = () => { if (paint[k.i] !== paintColour) { paint[k.i] = paintColour; b.style.background = paintColour; } };
+      b.onmousedown = () => { painting = true; dab(); }; b.onmouseenter = () => { if (painting) dab(); };
+      b.onclick = () => { dab(); render(); };
+    }}), el("p", {class: "note"}, "Click or drag across keys to paint them with the selected colour. Black turns a key off."));
+  return [el("h2", {}, "Lighting"), el("p", {class: "sub"}, "Pick an effect, then tune it. Choose “Custom per-key colours” to paint individual keys."), el("div", {class: "grid2"}, el("div", {}, main), side)];
+}
+window.addEventListener("mouseup", () => { if (painting) { painting = false; render(); } });
+
+/* ---------- Macros ---------- */
+function macroSize(events) {
+  let n = 2;
+  for (let i = 0; i < events.length; i++) {
+    let d = 0;
+    if (events[i].t === "delay") d = events[i].ms; else if (events[i + 1] && events[i + 1].t === "delay") d = events[++i].ms;
+    n += d > 0 && d <= 127 ? 2 : 4;
+  }
+  return n;
+}
+function openMacro(slot) { macroSel = slot; const m = S.config.macros[slot]; macroDraft = m ? clone(m) : {name: "Macro " + (slot + 1), repeat: 1, events: []}; }
+function stopRecording() { recording = false; recHeld.clear(); }
+function viewMacros() {
+  if (!macroDraft) openMacro(macroSel);
+  const M = macroDraft, stored = S.config.macros[macroSel], size = macroSize(M.events), over = size > S.macroMax;
+  const users = draftKeys.map((e, i) => e[0] === 9 && e[2] === macroSel ? keyName(i) : null).filter(Boolean);
+  const list = el("div", {class: "card list", style: "padding:8px;max-height:72vh;overflow:auto"}, range(0, S.macroSlots - 1).map(s => {
+    const m = S.config.macros[s];
+    return el("div", {class: "item" + (s === macroSel ? " sel" : "") + (m ? "" : " empty"), onclick: () => { stopRecording(); openMacro(s); render(); }}, el("span", {class: "n"}, s + 1), el("span", {class: "t"}, m ? m.name : "Empty"));
+  }));
+  const evRow = (e, i) => el("div", {class: "ev " + e.t},
+    el("b", {}, e.t === "delay" ? "Wait" : e.t === "down" ? "Press" : "Release"),
+    e.t === "delay" ? [el("input", {type: "number", min: 1, max: 65535, value: e.ms, style: "width:84px", onchange: ev => { e.ms = Math.min(65535, Math.max(1, +ev.target.value || 1)); render(); }}), "ms"] : el("span", {}, HID[e.k] || "Key " + e.k),
+    el("button", {class: "btn small x", title: "Remove step", onclick: () => { M.events.splice(i, 1); render(); }}, "✕"));
+  const addKey = el("select", {onchange: ev => { const k = +ev.target.value; if (k) { M.events.push({t: "down", k}, {t: "delay", ms: 30}, {t: "up", k}); render(); } }},
+    el("option", {value: 0}, "Add key tap…"), [...KEY_GROUPS.flatMap(g => g[1]), 240, 241, 242].map(c => el("option", {value: c}, HID[c])));
+  const editor = el("div", {class: "card"},
+    el("div", {class: "row"}, el("input", {type: "text", value: M.name, maxlength: 40, style: "flex:1;min-width:160px", oninput: ev => M.name = ev.target.value}),
+      el("span", {class: "note"}, "Repeat"), el("input", {type: "number", min: 1, max: 65535, value: M.repeat, style: "width:76px", onchange: ev => { M.repeat = Math.min(65535, Math.max(1, +ev.target.value || 1)); }}), el("span", {class: "note"}, "times")),
+    el("div", {class: "row", style: "margin:14px 0 10px"},
+      el("button", {class: "btn" + (recording ? " primary" : ""), onclick: () => { recording = !recording; recLast = 0; recHeld.clear(); render(); }}, recording ? "■ Stop recording" : "● Record keystrokes"),
+      addKey, el("button", {class: "btn", onclick: () => { M.events.push({t: "delay", ms: 100}); render(); }}, "Add wait"),
+      el("div", {class: "spacer"}), el("button", {class: "btn", disabled: !M.events.length, onclick: () => { M.events = []; render(); }}, "Clear steps")),
+    recording && el("div", {class: "banner"}, "Recording: type on any keyboard. Click Stop when finished."),
+    el("div", {class: "list", style: "max-height:44vh;overflow:auto"}, M.events.length ? M.events.map(evRow) : el("p", {class: "note"}, "No steps yet. Record keystrokes or add them one at a time.")),
+    el("div", {style: "margin-top:14px"}, el("div", {class: "meter"}, el("i", {style: `width:${Math.min(100, size / S.macroMax * 100)}%;${over ? "background:var(--bad)" : ""}`})),
+      el("p", {class: "note", style: "margin:6px 0 0"}, `${size} of ${S.macroMax} bytes used` + (over ? ": too long, remove some steps" : "") + (users.length ? " · assigned to: " + users.join(", ") : " · not assigned to a key yet (assign it on the Keys page)"))),
+    el("div", {class: "row", style: "margin-top:14px"},
+      el("button", {class: "btn primary", disabled: over || !M.events.length, onclick: () => run(async () => { stopRecording(); await api("/api/macro", {slot: macroSel, macro: M}, "Writing macro…"); openMacro(macroSel); }, "Macro saved to the keyboard")}, "Save to keyboard"),
+      el("button", {class: "btn danger", disabled: !stored, onclick: async () => { if (await confirmDlg(`Erase macro ${macroSel + 1} from the keyboard?`, "Erase")) run(async () => { await api("/api/macro", {slot: macroSel, macro: null}, "Erasing…"); openMacro(macroSel); }, "Macro erased"); }}, "Erase slot")));
+  return [el("h2", {}, "Macros"), el("p", {class: "sub"}, `The keyboard stores up to ${S.macroSlots} macros and plays them back by itself, on any computer. Save a macro here, then assign it to a key on the Keys page.`),
+    el("div", {style: "display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;align-items:start"}, list, editor)];
+}
+window.addEventListener("keydown", ev => {
+  if (!S || !S.connected || (ev.target.matches && ev.target.matches("input[type=text],input[type=number]"))) return;
+  const hid = CODE[ev.code];
+  if (tab === "keys" && capture && selKey != null && hid) { ev.preventDefault(); setKey([0, hid >= 224 ? 0 : assignMod, hid, 0]); return; }
+  if (tab === "macros" && recording && hid) { ev.preventDefault(); if (ev.repeat || recHeld.has(hid)) return; recHeld.add(hid); recordEvent("down", hid); }
+}, true);
+window.addEventListener("keyup", ev => {
+  const hid = CODE[ev.code];
+  if (tab === "macros" && recording && hid && recHeld.has(hid)) { ev.preventDefault(); recHeld.delete(hid); recordEvent("up", hid); }
+}, true);
+function recordEvent(t, k) {
+  const now = performance.now();
+  if (recLast && macroDraft.events.length) macroDraft.events.push({t: "delay", ms: Math.min(65535, Math.max(1, Math.round(now - recLast)))});
+  recLast = now; macroDraft.events.push({t, k}); render();
+}
+
+/* ---------- Settings ---------- */
+function viewSettings() {
+  const C = S.config;
+  const sw = (key, title, note) => el("label", {class: "switch"}, el("input", {type: "checkbox", checked: C[key], onchange: ev => run(() => api("/api/settings", {[key]: ev.target.checked}), "Saved")}), el("span", {}, el("div", {}, title), el("div", {class: "note"}, note)));
+  return [el("h2", {}, "Settings"), el("p", {class: "sub"}, "These are stored in the keyboard."),
+    el("div", {class: "card", style: "max-width:640px"},
+      el("h3", {style: "margin-top:0"}, "USB polling rate"),
+      el("div", {class: "chips"}, [125, 250, 500, 1000].map(hz => el("button", {class: "chip" + (C.rate === hz ? " sel" : ""), onclick: () => run(() => api("/api/settings", {rate: hz}), "Polling rate set to " + hz + " Hz")}, hz + " Hz"))),
+      C.rate == null && el("p", {class: "note"}, "The keyboard reported a rate this app does not recognise."),
+      el("h3", {}, "Behaviour"),
+      sw("winLock", "Lock the Windows key", "Stops accidental presses in games. Same as Fn + Win."),
+      sw("wasdSwap", "Swap WASD and the arrow keys", "W A S D act as arrows and the arrows type W A S D."),
+      sw("macLayout", "Mac layout", "Swaps Alt and Win so they sit where Option and Command do on a Mac. Leave off for Windows.")),
+    el("h3", {}, "Keyboard"),
+    el("div", {class: "card", style: "max-width:640px"},
+      el("table", {}, el("tr", {}, el("th", {}, "Model"), el("td", {}, "Dukharo VN66 (device id " + S.info.deviceId + ")")), el("tr", {}, el("th", {}, "Firmware"), el("td", {}, String(S.info.firmware))),
+        el("tr", {}, el("th", {}, "Connection"), el("td", {}, S.info.link)), el("tr", {}, el("th", {}, "Profiles & backups"), el("td", {style: "user-select:text"}, S.dataDir))),
+      el("div", {class: "row", style: "margin-top:14px"},
+        el("button", {class: "btn", onclick: () => run(async () => { await api("/api/refresh", {}, "Reading keyboard…"); resetDrafts(); }, "Re-read everything from the keyboard")}, "Re-read from keyboard"),
+        el("button", {class: "btn danger", onclick: async () => { if (await confirmDlg("Reset the keyboard to factory settings? Key map, lighting and macros on the keyboard will be erased. A backup of the current setup is saved first.", "Factory reset")) run(async () => { await api("/api/reset", {}, "Resetting keyboard…"); resetDrafts(); }, "Keyboard reset to factory settings"); }}, "Factory reset…")))];
+}
+
+/* ---------- Profiles ---------- */
+async function loadProfiles() { profileList = await api("/api/profiles"); }
+function viewProfiles() {
+  const apply = async (name, backup) => { if (!await confirmDlg(`Write “${name}” to the keyboard? This replaces its key map, lighting, macros and settings.`, "Write to keyboard")) return;
+    run(async () => { const {config} = await api("/api/profile/load", {name, backup}); await api("/api/applyAll", {config}, "Writing profile…"); resetDrafts(); }, "Profile written to the keyboard"); };
+  const exportIt = name => run(async () => { const {config} = await api("/api/profile/load", {name}); const a = el("a", {href: URL.createObjectURL(new Blob([JSON.stringify(config, null, 1)], {type: "application/json"})), download: name + ".vn66.json"}); a.click(); });
+  const nameBox = el("input", {type: "text", placeholder: "Profile name, e.g. Work", maxlength: 60, style: "flex:1;min-width:200px"});
+  const file = el("input", {type: "file", accept: ".json", style: "display:none", onchange: async ev => { const f = ev.target.files[0]; if (!f) return;
+    try { const config = JSON.parse(await f.text()); if (!Array.isArray(config.keymap) || config.keymap.length !== 128) throw new Error("That file is not a VN66 Studio profile");
+      if (await confirmDlg(`Write “${f.name}” to the keyboard?`, "Write to keyboard")) run(async () => { await api("/api/applyAll", {config}, "Writing profile…"); resetDrafts(); }, "Profile written to the keyboard"); } catch (e) { toast(e.message, "err"); } }});
+  const rows = (names, backup) => names.length ? el("table", {}, names.map(n => el("tr", {}, el("td", {}, n), el("td", {style: "text-align:right;white-space:nowrap"},
+      el("button", {class: "btn small", onclick: () => apply(n, backup)}, "Write to keyboard"), " ",
+      !backup && el("button", {class: "btn small", onclick: () => exportIt(n)}, "Export"), " ",
+      !backup && el("button", {class: "btn small danger", onclick: async () => { if (await confirmDlg(`Delete profile “${n}”?`, "Delete")) run(async () => { await api("/api/profile/delete", {name: n}); await loadProfiles(); }); }}, "Delete")))))
+    : el("p", {class: "note"}, backup ? "No backups yet." : "No saved profiles yet.");
+  return [el("h2", {}, "Profiles"), el("p", {class: "sub"}, "A profile is a snapshot of everything on the keyboard: key map, lighting, per-key colours, macros and settings. Save as many as you like on this PC and write any of them back later."),
+    el("div", {class: "card"}, el("div", {class: "row"}, nameBox,
+      el("button", {class: "btn primary", onclick: () => run(async () => { await api("/api/profile/save", {name: nameBox.value.trim()}); await loadProfiles(); }, "Profile saved")}, "Save current keyboard setup"),
+      el("button", {class: "btn", onclick: () => file.click()}, "Import file…"), file),
+      (keysDirty() || paintDirty()) && el("p", {class: "note", style: "margin:10px 0 0"}, "You have unwritten changes. Profiles capture what is stored on the keyboard, so write them first.")),
+    el("h3", {}, "Saved profiles"), el("div", {class: "card"}, rows(profileList.profiles, false)),
+    el("h3", {}, "Automatic backups"), el("div", {class: "card"}, el("p", {class: "note", style: "margin-top:0"}, "Taken the first time the keyboard connects and before every profile write or factory reset."), rows(profileList.backups, true))];
+}
+
+/* ---------- Shortcuts ---------- */
+function viewHelp() {
+  const K = (...k) => k.flatMap((x, i) => [i ? " + " : "", el("kbd", {}, x)]);
+  const groups = [["Connection", [[K("Fn", "T"), "Wired (USB) mode"], [K("Fn", "R"), "2.4G receiver"], [K("Fn", "Q"), "Bluetooth 1"], [K("Fn", "W"), "Bluetooth 2"], [K("Fn", "E"), "Bluetooth 3"]]],
+    ["Lighting", [[K("Fn", "\\"), "Next lighting effect"], [K("Fn", "P"), "Next colour"], [K("Fn", "Backspace"), "Lighting on / off"], [K("Fn", "↑"), "Brighter"], [K("Fn", "↓"), "Dimmer"], [K("Fn", "→"), "Faster"], [K("Fn", "←"), "Slower"]]],
+    ["Missing keys", [[K("Fn", "1…0, -, ="), "F1 … F12"], [K("Fn", "Esc"), "` and ~"], [K("Fn", "PgDn"), "Delete"], [K("Fn", "U"), "Print Screen"], [K("Fn", "I"), "Scroll Lock"], [K("Fn", "O"), "Pause"], [K("Fn", "J"), "Insert"], [K("Fn", "K"), "Home"], [K("Fn", "L"), "End"]]],
+    ["Media", [[K("Fn", "A"), "Play / pause"], [K("Fn", "S"), "Previous track"], [K("Fn", "D"), "Next track"], ["Knob", "Turn for volume, press to mute"]]],
+    ["System", [[K("Fn", "Win"), "Lock the Windows key"], [K("Fn", "L Alt"), "Hold 3 s: switch Windows / Mac layout"], [K("Fn", "L Alt", "Space"), "Hold 3 s: power-saving mode"], [K("L Ctrl", "L Alt", "Q"), "Hold 3 s: factory reset"]]]];
+  return [el("h2", {}, "Built-in shortcuts"), el("p", {class: "sub"}, "These Fn combinations are part of the keyboard's firmware and work without any software."),
+    el("div", {style: "display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px"}, groups.map(([name, rows]) => el("div", {class: "card"}, el("h3", {style: "margin-top:0"}, name), el("table", {}, rows.map(([k, d]) => el("tr", {}, el("td", {style: "white-space:nowrap"}, k), el("td", {}, d)))))))];
+}
+
+/* ---------- boot ---------- */
+$("#demoBtn").onclick = () => run(() => api("/api/demo", {on: !S.demo}));
+async function tick() {
+  if (!busy && S) {
+    try {
+      const was = S.connected, prob = S.problem;
+      await api("/api/state");
+      if (was !== S.connected || (!S.connected && prob !== S.problem)) { if (S.connected) await loadProfiles(); render(); } else renderChrome();
+    } catch (e) { $("#pill").className = "pill"; $("#pill").lastElementChild.textContent = "VN66 Studio has stopped. Close this window and start it again."; }
+  }
+  setTimeout(tick, 2000);
+}
+if (TABS.some(t => t[0] === location.hash.slice(1))) tab = location.hash.slice(1);
+(async () => { try { await api("/api/state"); await loadProfiles(); } catch (e) { toast(e.message, "err"); } render(); setTimeout(tick, 2000); })();
+</script>
+</body>
+</html>
