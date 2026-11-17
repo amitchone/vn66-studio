@@ -49,6 +49,6 @@ Profiles and backups live in `%APPDATA%\VN66Studio`.
 
 ## Licence
 
-0BSD: use it for anything, no conditions. See `LICENSE`.
+MIT: use it for anything, as long as the copyright notice stays with it. See `LICENSE`.
 
 Unofficial; not affiliated with Dukharo.
